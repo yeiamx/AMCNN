@@ -23,10 +23,15 @@ A  =  [[0.000000,  0.0000000,  0.0000000,  0.0000000,  0.05119703, 1.3431599],
 #toydata_am = pkl.load(open('toydata_am.npy', 'rb'))
 #print(toydata_am)
 
-#lil_matrix, label = load_data()
-#print('total:'+str(len(label)))
-#pprint.pprint(lil_matrix[5])
-#pprint.pprint(label[5])
+am, features, label = load_data()
+print('total:'+str(len(label)))
 
-#pprint.pprint(lil_matrix[199])
-#pprint.pprint(label[199])
+pprint.pprint(am[5])
+pprint.pprint(features[5])
+pprint.pprint(label[5])
+
+pprint.pprint(am[199])
+pprint.pprint(features[199])
+pprint.pprint(label[199])
+
+

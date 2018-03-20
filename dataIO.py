@@ -35,8 +35,37 @@ def meshToAdjacencyMatrix(mesh):
                 adjancencyMatrix[i][j] = np.linalg.norm(vertices[i]-vertices[j])
     return adjancencyMatrix
 
+def meshToFeatures(mesh):
+    return mesh.vertices
 
-def list_mesh_file(path, format, limit=1500):
+def list_mesh_to_features(path, format, limit=2500):
+    less_than_thousand_count = 0
+    path_list = os.listdir(path)
+    index = 0
+
+    for filename in path_list:
+        index+=1
+        print(str(index)+'/'+str(len(path_list)))
+
+        if os.path.splitext(filename)[1] == format:
+            try:
+                mesh = trimesh.load(path+'/'+filename)
+            except UnicodeDecodeError:
+                print("code format Error:"+filename)
+            if (len(mesh.vertices) <= limit):
+                #print(path+'/'+filename)
+                less_than_thousand_count+=1
+                print('processing...')
+                features = meshToFeatures(mesh)
+                np.save(path+'/'+filename.split('.')[0]+"_feature.npy", features)
+                #print(less_than_thousand_count)
+            else:
+                pass
+                #print(len(mesh.vertices))
+    print('total small '+format+' file: ', less_than_thousand_count)
+
+
+def list_mesh_to_am(path, format, limit=2500):
     less_than_thousand_count = 0
     path_list = os.listdir(path)
     index = 0
@@ -63,13 +92,16 @@ def list_mesh_file(path, format, limit=1500):
     print('total small '+format+' file: ', less_than_thousand_count)
 
 #be carefully before open below
-#list_mesh_file(airplane_file_path1, '.off', 2500)
-#list_mesh_file(airplane_file_path2, '.off', 2500)
-#list_mesh_file(bathtub_file_path1, '.off', 2500)
-#list_mesh_file(bathtub_file_path2, '.off', 2500)
-#list_mesh_file(plane_file_path, ".obj")
-#list_mesh_file(chair_file_path, '.obj', 2500)
+#list_mesh_to_am(airplane_file_path1, '.off', 2500)
+#list_mesh_to_am(airplane_file_path2, '.off', 2500)
+#list_mesh_to_am(bathtub_file_path1, '.off', 2500)
+#list_mesh_to_am(bathtub_file_path2, '.off', 2500)
+#list_mesh_to_am(plane_file_path, ".obj")
+#list_mesh_to_am(chair_file_path, '.obj', 2500)
 
 
-#meshToAdjacencyMatrix('toydata.obj')
-#print(np.load(bathtub_file_path1+'/'+'bathtub_0001_am.npy').shape)
+#list_mesh_to_features(bathtub_file_path1, '.off', 2500)
+#list_mesh_to_features(chair_file_path, '.obj', 2500)
+
+#list_mesh_to_features('data',  '.obj')
+#print(np.load('data/toydata_feature.npy').shape)

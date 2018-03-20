@@ -26,7 +26,9 @@ def load_data():
     """Load data."""
     print('loading data...')
     lil_adjancency_matrix_list = []
+    lil_features_matrix_list = []
     label = []
+
     chair_path_list = os.listdir(chair_file_path)
     bathhub_path_list = os.listdir(bathtub_file_path1)
     index = 0
@@ -34,25 +36,35 @@ def load_data():
 
     print('processing chairs...')
     for file_name in chair_path_list:
-        if (file_name.split('.')[-1]=='npy'):
-            index+=1
-            print('get '+str(index)+' in '+str(total_len))
+        if ('am' in file_name.split('.')[-2]):
             am = np.load(chair_file_path+'/'+file_name)
             lil_am = sp.lil_matrix(am)
             lil_adjancency_matrix_list.append(lil_am)
-            label.append(0)
+        if ('feature' in file_name.split('.')[-2]):
+            feature = np.load(chair_file_path+'/'+file_name)
+            lil_feature = sp.lil_matrix(feature)
+            lil_features_matrix_list.append(lil_feature)
 
-    print('processing bathhubs...')
-    for file_name in bathhub_path_list:
-        if (file_name.split('.')[-1]=='npy'):
+            label.append(0)
             index+=1
             print('get '+str(index)+' in '+str(total_len))
+
+    print('processing bathtubs...')
+    for file_name in bathhub_path_list:
+        if ('am' in file_name.split('.')[-2]):
             am = np.load(bathtub_file_path1+'/'+file_name)
             lil_am = sp.lil_matrix(am)
             lil_adjancency_matrix_list.append(lil_am)
-            label.append(1)
+        if ('feature' in file_name.split('.')[-2]):
+            feature = np.load(bathtub_file_path1+'/'+file_name)
+            lil_feature = sp.lil_matrix(feature)
+            lil_features_matrix_list.append(lil_feature)
 
-    return lil_adjancency_matrix_list, label
+            label.append(1)
+            index+=1
+            print('get '+str(index)+' in '+str(total_len))
+
+    return lil_adjancency_matrix_list, lil_features_matrix_list, label
 
 def sparse_to_tuple(sparse_mx):
     """Convert sparse matrix to tuple representation."""
@@ -108,26 +120,3 @@ def construct_feed_dict(features, support, labels, labels_mask, placeholders):
     feed_dict.update({placeholders['support'][i]: support[i] for i in range(len(support))})
     feed_dict.update({placeholders['num_features_nonzero']: features[1].shape})
     return feed_dict
-
-
-def chebyshev_polynomials(adj, k):
-    """Calculate Chebyshev polynomials up to order k. Return a list of sparse matrices (tuple representation)."""
-    print("Calculating Chebyshev polynomials up to order {}...".format(k))
-
-    adj_normalized = normalize_adj(adj)
-    laplacian = sp.eye(adj.shape[0]) - adj_normalized
-    largest_eigval, _ = eigsh(laplacian, 1, which='LM')
-    scaled_laplacian = (2. / largest_eigval[0]) * laplacian - sp.eye(adj.shape[0])
-
-    t_k = list()
-    t_k.append(sp.eye(adj.shape[0]))
-    t_k.append(scaled_laplacian)
-
-    def chebyshev_recurrence(t_k_minus_one, t_k_minus_two, scaled_lap):
-        s_lap = sp.csr_matrix(scaled_lap, copy=True)
-        return 2 * s_lap.dot(t_k_minus_one) - t_k_minus_two
-
-    for i in range(2, k+1):
-        t_k.append(chebyshev_recurrence(t_k[-1], t_k[-2], scaled_laplacian))
-
-    return sparse_to_tuple(t_k)
