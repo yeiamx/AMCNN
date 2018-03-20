@@ -71,5 +71,5 @@ def meshToAdjacencyMatrix(file_path):
     #print(contain_list)
     #print(adjancencyMatrix)
 
-meshToAdjacencyMatrix('toydata.obj')
-print(np.load('toydata_am.npy'))
+#meshToAdjacencyMatrix('toydata.obj')
+#print(np.load('toydata_am.npy'))
