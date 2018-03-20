@@ -1,18 +1,40 @@
 import trimesh
 import os
-import sys
 import os.path
 import numpy as np
 
-chair_file_path = 'E:/ML/Data/Grass data/chair/chair_aligned_obj_obb_200'
-bicycle_file_path = 'E:/ML/Data/Grass data/bicycle_aligned_obj_obb_100'
-candel_file_path = 'E:/ML/Data/Grass data/candel_aligned_obj_obb'
-excavator_file_path = 'E:/ML/Data/Grass data/excavator_aligned_obj_obb_61'
-plane_file_path = 'E:/ML/Data/Grass data/plane_aligned_obj_obb'
-airplane_file_path1='E:/ML/Data/airplane/test'
-airplane_file_path2='E:/ML/Data/airplane/train'
+chair_file_path = 'E:/ML/Data/chair/chair_aligned_obj_obb_200'
+#bicycle_file_path = 'E:/ML/Data/Grass data/bicycle_aligned_obj_obb_100'
+#candel_file_path = 'E:/ML/Data/Grass data/candel_aligned_obj_obb'
+#excavator_file_path = 'E:/ML/Data/Grass data/excavator_aligned_obj_obb_61'
+#plane_file_path = 'E:/ML/Data/Grass data/plane_aligned_obj_obb'
+#airplane_file_path1='E:/ML/Data/airplane/test'
+#airplane_file_path2='E:/ML/Data/airplane/train'
 bathtub_file_path1='E:/ML/Data/bathtub/train'
-bathtub_file_path2='E:/ML/Data/bathtub/test'
+#bathtub_file_path2='E:/ML/Data/bathtub/test'
+
+def meshToAdjacencyMatrix(mesh):
+    vertices = mesh.vertices
+    faces = mesh.faces
+    num_vertices = len(vertices)
+    num_faces = len(faces)
+
+    contain_list = [[] for i in range(num_vertices)]
+    for i in range(num_faces):
+        contain_list[faces[i][0]].append(faces[i][1])
+        contain_list[faces[i][0]].append(faces[i][2])
+        contain_list[faces[i][1]].append(faces[i][0])
+        contain_list[faces[i][1]].append(faces[i][2])
+        contain_list[faces[i][2]].append(faces[i][0])
+        contain_list[faces[i][2]].append(faces[i][1])
+
+    adjancencyMatrix = np.zeros((num_vertices, num_vertices))
+    for i in range(num_vertices):
+        for j in range(num_vertices):
+            if j in contain_list[i]:
+                adjancencyMatrix[i][j] = np.linalg.norm(vertices[i]-vertices[j])
+    return adjancencyMatrix
+
 
 def list_mesh_file(path, format, limit=1500):
     less_than_thousand_count = 0
@@ -31,45 +53,23 @@ def list_mesh_file(path, format, limit=1500):
             if (len(mesh.vertices) <= limit):
                 #print(path+'/'+filename)
                 less_than_thousand_count+=1
+                print('processing...')
+                adjacencyMatrix = meshToAdjacencyMatrix(mesh)
+                np.save(path+'/'+filename.split('.')[0]+"_am.npy", adjacencyMatrix)
                 #print(less_than_thousand_count)
             else:
                 pass
-                print(len(mesh.vertices))
-
+                #print(len(mesh.vertices))
     print('total small '+format+' file: ', less_than_thousand_count)
-#list_mesh_file(airplane_file_path1, '.off')
-#list_mesh_file(airplane_file_path2, '.off')
-#list_mesh_file(bathtub_file_path1, '.off')
-#list_mesh_file(bathtub_file_path2, '.off')
+
+#be carefully before open below
+#list_mesh_file(airplane_file_path1, '.off', 2500)
+#list_mesh_file(airplane_file_path2, '.off', 2500)
+#list_mesh_file(bathtub_file_path1, '.off', 2500)
+#list_mesh_file(bathtub_file_path2, '.off', 2500)
 #list_mesh_file(plane_file_path, ".obj")
+#list_mesh_file(chair_file_path, '.obj', 2500)
 
-def meshToAdjacencyMatrix(file_path):
-    mesh = trimesh.load(file_path)
-
-    vertices = mesh.vertices
-    faces = mesh.faces
-    num_vertices = len(vertices)
-    num_faces = len(faces)
-    #print(vertices)
-    #print(faces)
-
-    contain_list = [[] for i in range(num_vertices)]
-    for i in range(num_faces):
-        contain_list[faces[i][0]].append(faces[i][1])
-        contain_list[faces[i][0]].append(faces[i][2])
-        contain_list[faces[i][1]].append(faces[i][0])
-        contain_list[faces[i][1]].append(faces[i][2])
-        contain_list[faces[i][2]].append(faces[i][0])
-        contain_list[faces[i][2]].append(faces[i][1])
-
-    adjancencyMatrix = np.zeros((num_vertices, num_vertices))
-    for i in range(num_vertices):
-        for j in range(num_vertices):
-            if j in contain_list[i]:
-                adjancencyMatrix[i][j] = np.linalg.norm(vertices[i]-vertices[j])
-    np.save(file_path.split('/')[-1].split('.')[0]+"_am.npy", adjancencyMatrix)
-    #print(contain_list)
-    #print(adjancencyMatrix)
 
 #meshToAdjacencyMatrix('toydata.obj')
-#print(np.load('toydata_am.npy'))
+#print(np.load(bathtub_file_path1+'/'+'bathtub_0001_am.npy').shape)
