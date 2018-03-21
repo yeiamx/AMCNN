@@ -1,4 +1,4 @@
-from gcn.inits import *
+from inits import *
 import tensorflow as tf
 
 flags = tf.app.flags
@@ -81,6 +81,13 @@ class Layer(object):
         for var in self.vars:
             tf.summary.histogram(self.name + '/vars/' + var, self.vars[var])
 
+class Reshape(Layer):
+    """Reshape Layer"""
+    def __call__(self, inputs):
+        dim_0 = 1 #inputs.get_shape().as_list()[0] TODO
+        dim_1 = inputs.get_shape().as_list()[1]
+
+        return tf.reshape(inputs, [-1, dim_0*dim_1])
 
 class Dense(Layer):
     """Dense layer."""

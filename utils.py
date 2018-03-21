@@ -47,7 +47,7 @@ def load_data():
 
             label.append(0)
             index+=1
-            print('get '+str(index)+' in '+str(total_len))
+            #print('get '+str(index)+' in '+str(total_len))
 
     print('processing bathtubs...')
     for file_name in bathhub_path_list:
@@ -62,7 +62,7 @@ def load_data():
 
             label.append(1)
             index+=1
-            print('get '+str(index)+' in '+str(total_len))
+            #print('get '+str(index)+' in '+str(total_len))
 
     return lil_adjancency_matrix_list, lil_features_matrix_list, label
 
