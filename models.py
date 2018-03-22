@@ -38,15 +38,9 @@ class Model(object):
     def build(self):
         """ Wrapper for _build() """
         with tf.variable_scope(self.name):
-            self._build()
-
-        # Build sequential layer model
-        self.activations.append(self.inputs)
-        for layer in self.layers:
-            hidden = layer(self.activations[-1])
-            self.activations.append(hidden)
-        self.outputs = self.activations[-1]
+            self.outputs = self._build()
         print(self.outputs.get_shape())
+
         # Store model variables for easy access
         variables = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self.name)
         self.vars = {var.name: var for var in variables}
@@ -90,7 +84,6 @@ class GCN(Model):
         # self.input_dim = self.inputs.get_shape().as_list()[1]  # To be supported in future Tensorflow versions
         self.output_dim = placeholders['labels'].get_shape().as_list()[1]
         self.placeholders = placeholders
-
         self.optimizer = tf.train.AdamOptimizer(learning_rate=FLAGS.learning_rate)
 
         self.build()
@@ -105,29 +98,33 @@ class GCN(Model):
 
 
     def _build(self):
-        self.layers.append(GraphConvolution(input_dim=self.input_dim,
+        GC1 = GraphConvolution(input_dim=self.input_dim,
                                             output_dim=FLAGS.hidden1,
                                             placeholders=self.placeholders,
                                             act=tf.nn.relu,
                                             dropout=True,
                                             sparse_inputs=True,
-                                            logging=self.logging))
+                                            logging=self.logging)
 
-        self.layers.append(GraphConvolution(input_dim=FLAGS.hidden1,
+        GC2 = GraphConvolution(input_dim=FLAGS.hidden1,
                                             output_dim=FLAGS.hidden2,
                                             placeholders=self.placeholders,
                                             act=tf.nn.relu,
                                             dropout=True,
-                                            logging=self.logging))
+                                            logging=self.logging)
 
-        self.layers.append(Reshape())
+        Reshape1 = Reshape()
 
-        self.layers.append(Dense(input_dim=FLAGS.hidden2,
-                                            output_dim=self.output_dim,
+        activation = GC1(self.inputs)
+        activation = GC2(activation)
+        activation = Reshape1(activation)
+
+        Dense1 = Dense(input=activation,    output_dim=self.output_dim,
                                             placeholders=self.placeholders,
                                             act=lambda x:x,
                                             dropout=True,
-                                            logging=self.logging))
+                                            logging=self.logging)
+        return Dense1(activation)
 
     def predict(self):
         return tf.nn.softmax(self.outputs)

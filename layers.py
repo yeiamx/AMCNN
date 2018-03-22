@@ -84,14 +84,14 @@ class Layer(object):
 class Reshape(Layer):
     """Reshape Layer"""
     def __call__(self, inputs):
-        dim_0 = 1 #inputs.get_shape().as_list()[0] TODO
+        dim_0 = inputs.get_shape().as_list()[0]
         dim_1 = inputs.get_shape().as_list()[1]
 
-        return tf.reshape(inputs, [-1, dim_0*dim_1])
+        return tf.reshape(inputs, [1, -1])
 
 class Dense(Layer):
     """Dense layer."""
-    def __init__(self, input_dim, output_dim, placeholders, dropout=0., sparse_inputs=False,
+    def __init__(self, input, output_dim, placeholders, dropout=0., sparse_inputs=False,
                  act=tf.nn.relu, bias=False, featureless=False, **kwargs):
         super(Dense, self).__init__(**kwargs)
 
@@ -109,7 +109,8 @@ class Dense(Layer):
         self.num_features_nonzero = placeholders['num_features_nonzero']
 
         with tf.variable_scope(self.name + '_vars'):
-            self.vars['weights'] = glorot([input_dim, output_dim],
+            print('dense shape0:'+str(input.get_shape().as_list()[1]))
+            self.vars['weights'] = glorot([input.get_shape().as_list()[1], output_dim],
                                           name='weights')
             if self.bias:
                 self.vars['bias'] = zeros([output_dim], name='bias')
@@ -159,6 +160,7 @@ class GraphConvolution(Layer):
 
         with tf.variable_scope(self.name + '_vars'):
             for i in range(len(self.support)):
+                print([input_dim, output_dim])
                 self.vars['weights_' + str(i)] = glorot([input_dim, output_dim],
                                                         name='weights_' + str(i))
             if self.bias:
