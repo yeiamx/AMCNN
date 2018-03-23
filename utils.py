@@ -27,27 +27,23 @@ def load_data():
     print('loading data...')
     lil_adjancency_matrix_list = []
     lil_features_matrix_list = []
-    label = []
-
-    seg_mesh_path_list = os.listdir(segmentation_mesh_path)
+    labels = seg_to_label(segmentation_seg_path)
     index = 0
-    total_len = len(seg_mesh_path_list)
 
     print('loading seg_meshes...')
-    for file_name in seg_mesh_path_list:
-        if ('am' in file_name.split('.')[-2]):
-            am = np.load(chair_file_path+'/'+file_name)
-            lil_am = sp.lil_matrix(am)
-            lil_adjancency_matrix_list.append(lil_am)
-        if ('feature' in file_name.split('.')[-2]):
-            feature = np.load(chair_file_path+'/'+file_name)
-            lil_feature = sp.lil_matrix(feature)
-            lil_features_matrix_list.append(lil_feature)
+    for seg_index in seg_data_index:
+        am_file_name = seg_index+'_am.npy'
+        am = np.load(segmentation_mesh_path+'/'+am_file_name)
+        lil_am = sp.lil_matrix(am)
+        lil_adjancency_matrix_list.append(lil_am)
 
-            index+=1
-            print('get '+str(index)+' in '+str(total_len))
+        feature_file_name =seg_index+'_feature.npy'
+        feature = np.load(segmentation_mesh_path+'/'+feature_file_name)
+        lil_feature = sp.lil_matrix(feature)
+        lil_features_matrix_list.append(lil_feature)
+        #print('get '+str(index)+' in '+str(total_len))
 
-    return lil_adjancency_matrix_list, lil_features_matrix_list, label
+    return lil_adjancency_matrix_list, lil_features_matrix_list, labels
 
 def sparse_to_tuple(sparse_mx):
     """Convert sparse matrix to tuple representation."""

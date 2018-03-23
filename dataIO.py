@@ -86,7 +86,7 @@ def seg_to_label(path, format='seg'):
             class_num = np.max(label_array) + 1
             one_hot_label_array = np.eye(class_num)[label_array]
             labels.append(one_hot_label_array)
-    print(labels)
+    return labels
 
 def list_mesh_to_am(path, format, limit=2500):
     less_than_thousand_count = 0
