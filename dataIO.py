@@ -11,7 +11,11 @@ chair_file_path = 'E:/ML/Data/chair/chair_aligned_obj_obb_200'
 #airplane_file_path1='E:/ML/Data/airplane/test'
 #airplane_file_path2='E:/ML/Data/airplane/train'
 bathtub_file_path1='E:/ML/Data/bathtub/train'
+segmentation_mesh_path='E:/ML/Data/SegData(small)/mesh'
+segmentation_seg_path='E:/ML/Data/SegData(small)/seg'
 #bathtub_file_path2='E:/ML/Data/bathtub/test'
+
+seg_data_index = ['52', '125', '200', '341', '342', '343', '398']
 
 def meshToAdjacencyMatrix(mesh):
     vertices = mesh.vertices
@@ -64,6 +68,25 @@ def list_mesh_to_features(path, format, limit=2500):
                 #print(len(mesh.vertices))
     print('total small '+format+' file: ', less_than_thousand_count)
 
+""" origin seg format: N x 1
+    label format: N x C """
+
+def seg_to_label(path, format='seg'):
+    print('converting seg to labels...')
+
+    labels = []
+    for seg_index in seg_data_index:
+        filename = path + '/' + seg_index + '/' + seg_index + '_0.seg'
+        print(filename)
+        with open(filename,'r') as f:
+            result = []
+            for line in f.readlines():
+                result.append(int(line.strip('\n').strip('\r')))
+            label_array = np.array(result)
+            class_num = np.max(label_array) + 1
+            one_hot_label_array = np.eye(class_num)[label_array]
+            labels.append(one_hot_label_array)
+    print(labels)
 
 def list_mesh_to_am(path, format, limit=2500):
     less_than_thousand_count = 0
@@ -102,6 +125,9 @@ def list_mesh_to_am(path, format, limit=2500):
 
 #list_mesh_to_features(bathtub_file_path1, '.off', 2500)
 #list_mesh_to_features(chair_file_path, '.obj', 2500)
+
+#list_mesh_to_am(segmentation_mesh_path, '.off', 5000)
+#list_mesh_to_features(segmentation_mesh_path, '.off', 5000)
 
 #list_mesh_to_features('data',  '.obj')
 #print(np.load('data/toydata_feature.npy').shape)

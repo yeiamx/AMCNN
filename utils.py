@@ -29,13 +29,12 @@ def load_data():
     lil_features_matrix_list = []
     label = []
 
-    chair_path_list = os.listdir(chair_file_path)
-    bathhub_path_list = os.listdir(bathtub_file_path1)
+    seg_mesh_path_list = os.listdir(segmentation_mesh_path)
     index = 0
-    total_len = len(chair_path_list)+len(bathhub_path_list)
+    total_len = len(seg_mesh_path_list)
 
-    print('processing chairs...')
-    for file_name in chair_path_list:
+    print('loading seg_meshes...')
+    for file_name in seg_mesh_path_list:
         if ('am' in file_name.split('.')[-2]):
             am = np.load(chair_file_path+'/'+file_name)
             lil_am = sp.lil_matrix(am)
@@ -45,22 +44,6 @@ def load_data():
             lil_feature = sp.lil_matrix(feature)
             lil_features_matrix_list.append(lil_feature)
 
-            label.append(0)
-            index+=1
-            print('get '+str(index)+' in '+str(total_len))
-
-    print('processing bathtubs...')
-    for file_name in bathhub_path_list:
-        if ('am' in file_name.split('.')[-2]):
-            am = np.load(bathtub_file_path1+'/'+file_name)
-            lil_am = sp.lil_matrix(am)
-            lil_adjancency_matrix_list.append(lil_am)
-        if ('feature' in file_name.split('.')[-2]):
-            feature = np.load(bathtub_file_path1+'/'+file_name)
-            lil_feature = sp.lil_matrix(feature)
-            lil_features_matrix_list.append(lil_feature)
-
-            label.append(1)
             index+=1
             print('get '+str(index)+' in '+str(total_len))
 
