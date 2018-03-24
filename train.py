@@ -7,6 +7,8 @@ import tensorflow as tf
 from utils import *
 from models import GCN, MLP
 
+import matplotlib.pyplot as plt
+
 # Set random seed
 seed = 123
 np.random.seed(seed)
@@ -18,8 +20,13 @@ FLAGS = flags.FLAGS
 flags.DEFINE_string('dataset', 'cora', 'Dataset string.')  # 'cora', 'citeseer', 'pubmed'
 flags.DEFINE_string('model', 'gcn', 'Model string.')  # 'gcn', 'gcn_cheby', 'dense'
 flags.DEFINE_float('learning_rate', 0.001, 'Initial learning rate.')
-flags.DEFINE_integer('epochs', 3000, 'Number of epochs to train.')
-flags.DEFINE_integer('hidden1', 256, 'Number of units in hidden layer 1.')
+flags.DEFINE_integer('epochs', 10000, 'Number of epochs to train.')
+flags.DEFINE_integer('hidden1', 64, 'Number of units in hidden layer 1.')
+flags.DEFINE_integer('hidden2', 128, 'Number of units in hidden layer 2.')
+flags.DEFINE_integer('hidden3', 256, 'Number of units in hidden layer 3.')
+flags.DEFINE_integer('hidden4', 256, 'Number of units in hidden layer 4.')
+flags.DEFINE_integer('hidden5', 512, 'Number of units in hidden layer 5.')
+flags.DEFINE_integer('hidden6', 1024, 'Number of units in hidden layer 6.')
 flags.DEFINE_float('dropout', 0.5, 'Dropout rate (1 - keep probability).')
 flags.DEFINE_float('weight_decay', 5e-4, 'Weight for L2 loss on embedding matrix.')
 flags.DEFINE_integer('early_stopping', 10, 'Tolerance for early stopping (# of epochs).')
@@ -57,7 +64,11 @@ for index in range(len(supports)):
     feature = features[index]
     y_train = labels[index]
     train_mask = np.array(list(range(len(y_train))))
-    train_mask[:] = True
+    train_mask[:2500] = True
+    train_mask[2500:] = False
+    val_mask = np.array(list(range(len(y_train))))
+    val_mask[2500:] = False
+    val_mask[:2500] = True
 
     # Define placeholders
     placeholders = {
@@ -75,6 +86,8 @@ for index in range(len(supports)):
     # Init variables
     sess.run(tf.global_variables_initializer())
 
+    costs = []
+    jump_num_iters = 1
     for epoch in range(FLAGS.epochs):
         # Construct feed dictionary
         feed_dict = construct_feed_dict(feature, support, y_train, train_mask, placeholders)
@@ -83,14 +96,16 @@ for index in range(len(supports)):
         # Training step
         outs = sess.run([model.opt_op, model.loss, model.accuracy], feed_dict=feed_dict)
 
+        # Validation
+        cost, acc, duration = evaluate(feature, support, y_train, val_mask, placeholders)
+        if (epoch%jump_num_iters == 0):
+            costs.append(outs[1])
         # Print results
         print("Index:", '%04d' % (index + 1), "Epoch:", '%04d' % (epoch + 1), "train_loss=", "{:.5f}".format(outs[1]),
-              "train_acc=", "{:.5f}".format(outs[2]))
-
-        # Validation
-        # cost, acc, duration = evaluate(features, support, y_val, val_mask, placeholders)
-        # cost_val.append(cost)
-
+              "train_acc=", "{:.5f}".format(outs[2]), "val_lo ss=", "{:.5f}".format(cost),
+              "val_acc=", "{:.5f}".format(acc))
+    plt.plot(costs)
+    plt.show()
     # if epoch > FLAGS.early_stopping and cost_val[-1] > np.mean(cost_val[-(FLAGS.early_stopping+1):-1]):
     #     print("Early stopping...")
     #     break
